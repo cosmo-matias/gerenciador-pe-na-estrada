@@ -1,0 +1,13 @@
+# Arquivos de banco de dados e relatórios locais
+*.db
+relatorios/
+__pycache__/
+
+# Pastas geradas pelo PyInstaller (Empacotamento)
+build/
+dist/
+*.spec
+
+# Ambientes Virtuais (se estiver usando)
+venv/
+env/
