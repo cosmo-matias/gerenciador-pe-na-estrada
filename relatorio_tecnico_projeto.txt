@@ -1,0 +1,140 @@
+=========================================================
+      RELATÓRIO TÉCNICO - PÉ NA ESTRADA TOUR
+=========================================================
+
+1. Árvore Atualizada de Diretórios e Arquivos
+---------------------------------------------------------
+sistema_viagens/
+├── .git/
+├── .gitignore
+├── build/
+├── dist/
+├── pages/
+│   ├── __init__.py
+│   ├── mapa_onibus.py
+│   ├── passageiros.py
+│   └── passeios.py
+├── relatorios/
+├── __pycache__/
+├── database.py
+├── gerador_pdf.py
+├── Gerenciador_PeNaEstrada.spec
+├── logo.png
+├── main.py
+├── migrate.py
+├── README.md
+└── sistema_viagens.db
+
+
+2. Descrição dos Principais Arquivos (.py)
+---------------------------------------------------------
+- main.py: Entrypoint principal da aplicação, responsável por desenhar a janela raiz (root), a barra lateral fixa e gerenciar a injeção e transição dinâmica das telas (módulos) do sistema.
+- database.py: Módulo focado na infraestrutura de persistência. Instancia o banco SQLite, habilita as restrições de Foreign Key e cria todas as tabelas primárias caso não existam de forma idempotente.
+- gerador_pdf.py: Motor de exportação de dados focado na criação de Manifestos de Embarque profissionais usando ReportLab. Filtra a exibição de dados sensíveis baseados nos tipos ("completo", "resumido") e divide passageiros pagantes de crianças de colo.
+- migrate.py: Script auxiliar utilizado em etapas anteriores de desenvolvimento para executar a migração e injeção (ALTER TABLE) de novas colunas em bancos existentes.
+- pages/passageiros.py: Módulo para controle de cadastro de clientes com layout Toplevel responsivo. Suporta sistema de listagem (Treeview), validação com máscaras dinâmicas no padrão brasileiro (CPF e Data).
+- pages/passeios.py: Core funcional para gestão das excursões. Implementado na Fase 4 (refatorado na 1.0) utilizando arquitetura visual Kanban (Status: A realizar, Finalizado, Cancelado) para gerenciamento rápido de destinos e acesso ao grid do ônibus.
+- pages/mapa_onibus.py: Tela robusta gerada a partir dos cards de passeio. Desenha a matriz lógica das poltronas do ônibus via algorítmo matemático em ziguezague. Também consolida alocações, valida dependentes (crianças de colo conectadas ao ID pai) e aciona a geração dos PDFs locais.
+
+
+3. Esquema (Schema) Atualizado do Banco de Dados SQLite
+---------------------------------------------------------
+[ Tabela: passageiros ]
+Armazena os dados cadastrais da agência.
+- id (INTEGER) PRIMARY KEY AUTOINCREMENT
+- nome_completo (TEXT) NOT NULL
+- data_nascimento (TEXT)
+- rg (TEXT)
+- cpf (TEXT) UNIQUE
+- whatsapp (TEXT)
+
+[ Tabela: passeios ]
+Registra as excursões.
+- id (INTEGER) PRIMARY KEY AUTOINCREMENT
+- destino (TEXT) NOT NULL
+- locais_embarque (TEXT)
+- local_destino (TEXT)
+- data_passeio (TEXT) NOT NULL
+- hora_saida (TEXT)
+- hora_retorno (TEXT)
+- capacidade (INTEGER) -- 30 ou 50
+- valor_passeio (REAL)
+- status (TEXT) DEFAULT 'A realizar' CHECK(status IN ('A realizar', 'Finalizado', 'Cancelado'))
+
+[ Tabela: alocacao_poltronas ]
+Tabela associativa entre os passageiros, os assentos e os passeios.
+- id (INTEGER) PRIMARY KEY AUTOINCREMENT
+- passeio_id (INTEGER) NOT NULL - FK(passeios.id) ON DELETE CASCADE
+- passageiro_id (INTEGER) NOT NULL - FK(passageiros.id) ON DELETE CASCADE
+- numero_poltrona (INTEGER) NOT NULL
+- crianca_colo (TEXT) -- Salva o ID da criança na tabela de passageiros
+- local_embarque (TEXT)
+- tipo_desconto (TEXT) CHECK(tipo_desconto IN ('porcentagem', 'valor', NULL))
+- valor_desconto (REAL)
+> UNIQUE(passeio_id, passageiro_id)
+> UNIQUE(passeio_id, numero_poltrona)
+
+
+4. Plano de Implementação da Fase 2 (Dashboard Principal)
+---------------------------------------------------------
+# Plano de Implementação: Fase 2 - Dashboard Principal
+
+O objetivo desta fase é criar a tela inicial (`dashboard.py`), fornecendo uma visão gerencial de alto nível com métricas essenciais e atalhos rápidos, substituindo a antiga tela de boas-vindas vazia do aplicativo.
+
+## Visão Geral da Interface
+
+O Dashboard será construído utilizando `customtkinter` e será estruturado em três seções verticais fluidas:
+
+### 1. Cards de Resumo (Topo)
+Um *Grid* de `CTkFrame` contendo dados estáticos extraídos do banco de dados na inicialização:
+- **Total de Passeios Ativos**: Contagem na tabela `passeios` com status "A realizar".
+- **Total de Passageiros**: Contagem na tabela `passageiros`.
+- **(Opcional) Taxa de Ocupação Global**: Uma média de vagas preenchidas vs capacidade dos passeios ativos.
+
+### 2. Visão Estratégica (Centro)
+Um `CTkScrollableFrame` focado nos **"Próximos Passeios"**.
+- Apenas passeios com status "A realizar", ordenados por `data_passeio` ascendente (do mais próximo para o mais distante).
+- Limite de exibição (ex: os 5 passeios mais próximos) para não poluir o Dashboard.
+- O layout de cada item (encarte miniatura) exibirá Destino, Data e uma **Barra de Progresso visual** (`CTkProgressBar`) mostrando a lotação do ônibus de forma rápida e intuitiva.
+
+### 3. Acesso Rápido (Rodapé/Lateral)
+Um contêiner (`CTkFrame`) com atalhos de alta frequência de uso:
+- Botão "Cadastrar Novo Passeio" (Redireciona/Abre o formulário do módulo Passeios).
+- Botão "Gerenciar Passageiros" (Redireciona para o módulo Passageiros).
+- *Nota Técnica:* Para fazer o redirecionamento entre módulos (telas), o `dashboard.py` precisará disparar um callback para a classe controladora `App` (o `main.py`) pedindo a troca do frame ativo, ou simular o clique no menu lateral.
+
+## Proposed Changes
+
+---
+
+### Módulo Dashboard
+Criação do novo arquivo responsável pela tela inicial.
+
+#### [NEW] [dashboard.py](file:///C:/Users/ducos/.gemini/antigravity/scratch/sistema_viagens/pages/dashboard.py)
+- Criação da classe `DashboardPage(ctk.CTkFrame)`.
+- Métodos de renderização: `_construir_cards_resumo()`, `_construir_proximos_passeios()`, `_construir_acesso_rapido()`.
+- Lógica de extração de dados `carregar_metricas()` com consultas SQL (`SELECT COUNT...`).
+
+### Módulo Principal (Entrypoint)
+Integração do Dashboard no núcleo do aplicativo.
+
+#### [MODIFY] [main.py](file:///C:/Users/ducos/.gemini/antigravity/scratch/sistema_viagens/main.py)
+- Importar `DashboardPage` de `pages.dashboard`.
+- Adicionar o Dashboard ao dicionário de rotas: `rotas = {"Dashboard": DashboardPage, ...}`.
+- Trocar a tela inicial padrão de `Passageiros` (se ainda estiver) para `Dashboard`.
+- Passar um método de controle de navegação (ex: `self.navegar_para("Passeios")`) para a classe filha, permitindo que os botões de "Acesso Rápido" do Dashboard mudem a tela principal do app.
+
+## Open Questions
+
+> [!WARNING]
+> Para que os atalhos "Cadastrar Novo Passeio" e "Gerenciar Passageiros" no Dashboard funcionem como links perfeitos (mudando a tela atual e destacando o botão correto no menu lateral escuro do `main.py`), precisaremos criar uma função pública de navegação no `main.py`. Você prefere que eu adicione essa função arquitetural de navegação no core do app durante esta implementação?
+
+> [!TIP]
+> O layout dos *Cards de Resumo* no topo fica mais bonito lado-a-lado usando o gerenciador de `.grid(row=0, column=X)`. Quer que os cards também tragam um ícone ilustrativo (ex: 🚌, 👥) ao lado dos números?
+
+## Verification Plan
+
+### Testes Manuais
+1. Inicializar o `main.py` e observar se o Dashboard carrega como tela padrão inicial.
+2. Conferir se a quantidade de passageiros e passeios bate com o conteúdo real do banco.
+3. Testar o clique no botão de atalho e ver se a tela lateral altera o módulo ativo (para Passeios ou Passageiros).

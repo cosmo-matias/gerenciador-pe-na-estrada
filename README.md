@@ -6,10 +6,13 @@ Um sistema desktop robusto desenvolvido para otimizar a operação, o financeiro
 Este software foi construído como um laboratório prático de Engenharia de Software, aplicando conceitos de arquitetura, banco de dados relacionais e design de interface (UI/UX) para resolver um problema real de gestão do setor de turismo. A aplicação elimina planilhas manuais, centralizando a venda de passagens e a emissão de relatórios governamentais em um único executável local.
 
 ## ✨ Principais Funcionalidades
+* **Dashboard Gerencial:** Tela interativa de boas-vindas com métricas vivas, atalhos de navegação profunda e lista de próximos passeios com barras de progresso (`CTkProgressBar`) de lotação.
 * **Gestão Kanban de Excursões:** Quadro visual dinâmico com colunas de status (A Realizar, Finalizados, Cancelados).
 * **Alocação Visual de Poltronas:** Interface gráfica que gera o grid do ônibus matematicamente e gerencia assentos livres/ocupados em tempo real.
+* **Módulo Financeiro Local:** Gestão de pagamentos (parciais e totais) integrados ao mapa do ônibus, com cálculo de status dinâmico (Pendente, Parcial, Quitado).
+* **Inteligência de Custos:** Motor de cálculo em tempo real de Custos Adicionais, Ponto de Equilíbrio e Margem de Lucro por excursão.
+* **Motor de Exportação em PDF:** Emissão automática de Recibos de Pagamento no momento do lançamento, geração corporativa do Balanço Financeiro da viagem e Manifestos de Embarque (versões Completas e Resumidas) com proteção de dados.
 * **Regra de Negócio de Dependentes:** Lógica estruturada para gerenciar crianças de colo compartilhando o mesmo assento físico do responsável no sistema.
-* **Manifestos de Embarque em PDF:** Geração automática de relatórios de viagem (versões Completas e Resumidas) com proteção de dados e tabelas zebradas.
 * **Banco de Dados Relacional:** Controle integrado via SQLite, utilizando `JOINs` para cruzar passageiros, viagens e assentos.
 
 ## 🛠️ Tecnologias Utilizadas

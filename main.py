@@ -17,6 +17,7 @@ from database import criar_tabelas
 # --- Importação das páginas reais ---
 from pages.passageiros import PassageirosFrame
 from pages.passeios import PasseiosFrame
+from pages.dashboard import DashboardFrame
 
 # ---------------------------------------------------------------------------
 # Configuração global do tema
@@ -250,27 +251,19 @@ class App(ctk.CTk):
     # Roteamento / Navegação
     # -----------------------------------------------------------------------
 
-    def navegar(self, nome_pagina: str):
-        """
-        Alterna o módulo exibido no frame principal.
-
-        Limpa os widgets existentes e carrega o conteúdo
-        correspondente à página selecionada no menu.
-
-        Args:
-            nome_pagina (str): Nome da página a ser exibida.
-        """
-        if nome_pagina == self._pagina_ativa:
-            return
-
+    def navegar(self, nome_pagina: str, acao_pos_navegacao=None):
+        """Muda a página exibida no frame principal."""
         self._pagina_ativa = nome_pagina
         self._atualizar_botao_ativo(nome_pagina)
 
-        # Remove todos os widgets do frame principal
+        # Limpa o frame atual
         for widget in self.frame_principal.winfo_children():
             widget.destroy()
-
-        self._carregar_pagina(nome_pagina)
+            
+        pagina = self._carregar_pagina(nome_pagina)
+        
+        if acao_pos_navegacao and pagina:
+            self.after(100, lambda: acao_pos_navegacao(pagina))
 
     def _atualizar_botao_ativo(self, nome_pagina: str):
         """
@@ -308,16 +301,16 @@ class App(ctk.CTk):
         rotas: dict[str, type] = {
             "Passageiros": PassageirosFrame,
             "Passeios": PasseiosFrame,
+            "Dashboard": DashboardFrame,
             # Próximas fases:
-            # "Dashboard":  DashboardPage,
             # "Financeiro": FinanceiroPage,
         }
 
-        # Carrega o módulo real, se disponível
+        # Se a página existir, instanciamos passando o self.frame_principal
         if nome_pagina in rotas:
             pagina = rotas[nome_pagina](self.frame_principal)
             pagina.pack(fill="both", expand=True)
-            return
+            return pagina
 
         # --- Placeholder para páginas em desenvolvimento ---
         icone = next(
@@ -360,6 +353,7 @@ class App(ctk.CTk):
             fg_color=CORES["sidebar_bg"],
             corner_radius=20,
         ).pack()
+        return container
 
 
 # ===========================================================================

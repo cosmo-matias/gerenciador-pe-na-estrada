@@ -89,6 +89,8 @@ def criar_tabelas() -> None:
                 hora_retorno   TEXT,
                 capacidade     INTEGER,             -- Valores esperados: 30 ou 50
                 valor_passeio  REAL,                -- Preço base do passeio
+                custo_onibus   REAL    DEFAULT 0.0,
+                custos_adicionais REAL DEFAULT 0.0,
                 status         TEXT    DEFAULT 'A realizar'
                                         CHECK(status IN ('A realizar', 'Finalizado', 'Cancelado'))
             );
@@ -123,10 +125,27 @@ def criar_tabelas() -> None:
             );
         """)
 
+        # -------------------------------------------------------------------
+        # Tabela 4: pagamentos
+        # Armazena os lançamentos financeiros referentes a cada alocação.
+        # -------------------------------------------------------------------
+        cursor.execute("""
+            CREATE TABLE IF NOT EXISTS pagamentos (
+                id                  INTEGER PRIMARY KEY AUTOINCREMENT,
+                alocacao_id         INTEGER NOT NULL,
+                valor_pago          REAL NOT NULL,
+                data_hora_pagamento TEXT NOT NULL,
+                metodo_pagamento    TEXT NOT NULL
+                                    CHECK(metodo_pagamento IN ('PIX', 'Dinheiro', 'Cartão')),
+                
+                FOREIGN KEY (alocacao_id) REFERENCES alocacao_poltronas(id) ON DELETE CASCADE
+            );
+        """)
+
         # Confirma todas as alterações no banco de dados
         conn.commit()
         print(f"[OK] Banco de dados inicializado com sucesso em: {DB_PATH}")
-        print("[OK] Tabelas 'passageiros', 'passeios' e 'alocacao_poltronas' verificadas/criadas.")
+        print("[OK] Tabelas 'passageiros', 'passeios', 'alocacao_poltronas' e 'pagamentos' verificadas/criadas.")
 
     except sqlite3.Error as e:
         # Em caso de erro, desfaz quaisquer alterações parciais
