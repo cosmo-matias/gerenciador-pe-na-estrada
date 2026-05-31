@@ -553,10 +553,12 @@ class MapaOnibusWindow(ctk.CTkToplevel):
         ctk.CTkLabel(frame_custos, text="Custo Ônibus (R$):", text_color="#192E33", font=ctk.CTkFont(weight="bold")).pack(side="left", padx=5)
         self.entry_custo_onibus = ctk.CTkEntry(frame_custos, width=100)
         self.entry_custo_onibus.pack(side="left", padx=5)
+        self.entry_custo_onibus.bind("<KeyRelease>", lambda e: self.formatar_moeda(e, self.entry_custo_onibus))
         
         ctk.CTkLabel(frame_custos, text="Custos Adicionais (R$):", text_color="#192E33", font=ctk.CTkFont(weight="bold")).pack(side="left", padx=5)
         self.entry_custos_adicionais = ctk.CTkEntry(frame_custos, width=100)
         self.entry_custos_adicionais.pack(side="left", padx=5)
+        self.entry_custos_adicionais.bind("<KeyRelease>", lambda e: self.formatar_moeda(e, self.entry_custos_adicionais))
         
         ctk.CTkButton(frame_custos, text="Salvar Custos", width=120, fg_color="#3D7BA3", hover_color="#2A5A7A", command=self.salvar_custos).pack(side="left", padx=10)
         
@@ -619,16 +621,33 @@ class MapaOnibusWindow(ctk.CTkToplevel):
         self.scroll_fin = ctk.CTkScrollableFrame(parent, fg_color="#F8F9FA")
         self.scroll_fin.pack(fill="both", expand=True, padx=20, pady=(5, 20))
 
+    def formatar_moeda(self, event, entry):
+        if event.keysym in ('Left', 'Right', 'Up', 'Down', 'Shift_L', 'Shift_R', 'Control_L', 'Control_R', 'Alt_L', 'Alt_R', 'Tab'):
+            return
+        texto = entry.get()
+        numeros = ''.join(filter(str.isdigit, texto))
+        if not numeros:
+            texto_formatado = ""
+        else:
+            valor = float(numeros) / 100
+            texto_formatado = f"{valor:,.2f}".replace(",", "X").replace(".", ",").replace("X", ".")
+        
+        entry.delete(0, 'end')
+        entry.insert(0, texto_formatado)
+
     def salvar_custos(self):
         try:
-            c_onibus = float(self.entry_custo_onibus.get().replace("R$", "").replace(".", "").replace(",", ".").strip() or 0)
-            c_adicional = float(self.entry_custos_adicionais.get().replace("R$", "").replace(".", "").replace(",", ".").strip() or 0)
+            num_onibus = ''.join(filter(str.isdigit, self.entry_custo_onibus.get())) or '0'
+            num_adc = ''.join(filter(str.isdigit, self.entry_custos_adicionais.get())) or '0'
+            c_onibus = float(num_onibus) / 100
+            c_adicional = float(num_adc) / 100
         except ValueError:
             messagebox.showwarning("Aviso", "Valores de custo inválidos.", parent=self)
             return
             
         conn = self._conectar()
-        conn.execute("UPDATE passeios SET custo_onibus=?, custos_adicionais=? WHERE id=?", (c_onibus, c_adicional, self.id_passeio))
+        cursor = conn.cursor()
+        cursor.execute("UPDATE passeios SET custo_onibus=?, custos_adicionais=? WHERE id=?", (c_onibus, c_adicional, self.id_passeio))
         conn.commit()
         conn.close()
         self.carregar_financeiro()
@@ -666,8 +685,8 @@ class MapaOnibusWindow(ctk.CTkToplevel):
                 a.valor_desconto,
                 COALESCE(SUM(pag.valor_pago), 0) as total_pago
             FROM alocacao_poltronas a
-            JOIN passageiros p ON a.passageiro_id = p.id
-            JOIN passeios pass ON a.passeio_id = pass.id
+            INNER JOIN passageiros p ON a.passageiro_id = p.id
+            INNER JOIN passeios pass ON a.passeio_id = pass.id
             LEFT JOIN pagamentos pag ON a.id = pag.alocacao_id
             WHERE a.passeio_id = ?
             GROUP BY a.id, a.numero_poltrona, p.nome_completo, pass.valor_passeio, a.tipo_desconto, a.valor_desconto

@@ -142,6 +142,21 @@ def criar_tabelas() -> None:
             );
         """)
 
+        # -------------------------------------------------------------------
+        # Self-Healing / Migração Automática
+        # Garante a existência das novas colunas se o banco for de uma versão antiga
+        # -------------------------------------------------------------------
+        cursor.execute("PRAGMA table_info(passeios)")
+        colunas_passeios = [col[1] for col in cursor.fetchall()]
+        
+        if 'custo_onibus' not in colunas_passeios:
+            cursor.execute("ALTER TABLE passeios ADD COLUMN custo_onibus REAL DEFAULT 0.0;")
+            print("[MIGRAÇÃO] Coluna 'custo_onibus' adicionada à tabela passeios.")
+            
+        if 'custos_adicionais' not in colunas_passeios:
+            cursor.execute("ALTER TABLE passeios ADD COLUMN custos_adicionais REAL DEFAULT 0.0;")
+            print("[MIGRAÇÃO] Coluna 'custos_adicionais' adicionada à tabela passeios.")
+
         # Confirma todas as alterações no banco de dados
         conn.commit()
         print(f"[OK] Banco de dados inicializado com sucesso em: {DB_PATH}")

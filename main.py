@@ -19,6 +19,7 @@ from pages.passageiros import PassageirosFrame
 from pages.passeios import PasseiosFrame
 from pages.dashboard import DashboardFrame
 from pages.financeiro_global import FinanceiroFrame
+from pages.configuracoes import ConfiguracoesFrame
 
 # ---------------------------------------------------------------------------
 # Configuração global do tema
@@ -60,6 +61,7 @@ PAGINAS = [
     {"nome": "Passeios",    "icone": "🗺️"},
     {"nome": "Passageiros", "icone": "👥"},
     {"nome": "Financeiro",  "icone": "💰"},
+    {"nome": "Configurações", "icone": "⚙️"},
 ]
 
 # Diretório base do projeto (mesmo diretório deste arquivo)
@@ -304,6 +306,7 @@ class App(ctk.CTk):
             "Passeios": PasseiosFrame,
             "Dashboard": DashboardFrame,
             "Financeiro": FinanceiroFrame,
+            "Configurações": ConfiguracoesFrame,
         }
 
         # Se a página existir, instanciamos passando o self.frame_principal

@@ -15,6 +15,7 @@ Este software foi construído como um laboratório prático de Engenharia de Sof
 * **Motor de Exportação em PDF:** Emissão automática de Recibos de Pagamento no momento do lançamento, geração corporativa do Balanço Financeiro da viagem e Manifestos de Embarque (versões Completas e Resumidas) com proteção de dados.
 * **Regra de Negócio de Dependentes:** Lógica estruturada para gerenciar crianças de colo compartilhando o mesmo assento físico do responsável no sistema.
 * **Banco de Dados Relacional:** Controle integrado via SQLite, utilizando `JOINs` para cruzar passageiros, viagens e assentos.
+* **Configurações e Segurança Avançada:** Painel de exportação manual de Backup do banco de dados com carimbo de data/hora, acoplado a uma rotina de *Self-Healing* que previne quebras sistêmicas ao restaurar backups antigos.
 
 ## 🛠️ Tecnologias Utilizadas
 * **Python 3**
