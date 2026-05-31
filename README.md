@@ -7,6 +7,7 @@ Este software foi construído como um laboratório prático de Engenharia de Sof
 
 ## ✨ Principais Funcionalidades
 * **Dashboard Gerencial:** Tela interativa de boas-vindas com métricas vivas, atalhos de navegação profunda e lista de próximos passeios com barras de progresso (`CTkProgressBar`) de lotação.
+* **Módulo de Fluxo de Caixa Global:** Visualização macro do faturamento, custos operacionais totais e lucro líquido consolidado de todas as excursões.
 * **Gestão Kanban de Excursões:** Quadro visual dinâmico com colunas de status (A Realizar, Finalizados, Cancelados).
 * **Alocação Visual de Poltronas:** Interface gráfica que gera o grid do ônibus matematicamente e gerencia assentos livres/ocupados em tempo real.
 * **Módulo Financeiro Local:** Gestão de pagamentos (parciais e totais) integrados ao mapa do ônibus, com cálculo de status dinâmico (Pendente, Parcial, Quitado).

@@ -18,6 +18,7 @@ from database import criar_tabelas
 from pages.passageiros import PassageirosFrame
 from pages.passeios import PasseiosFrame
 from pages.dashboard import DashboardFrame
+from pages.financeiro_global import FinanceiroFrame
 
 # ---------------------------------------------------------------------------
 # Configuração global do tema
@@ -302,8 +303,7 @@ class App(ctk.CTk):
             "Passageiros": PassageirosFrame,
             "Passeios": PasseiosFrame,
             "Dashboard": DashboardFrame,
-            # Próximas fases:
-            # "Financeiro": FinanceiroPage,
+            "Financeiro": FinanceiroFrame,
         }
 
         # Se a página existir, instanciamos passando o self.frame_principal
